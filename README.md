@@ -2,7 +2,7 @@
 
 A responsive project portfolio featuring the HK SIGS robotics project. The homepage includes a project banner with a subtle scroll parallax effect. The hero artwork is `hksigs-front.svg`.
 
-Edit `index.html` to update project details, portfolio copy, or the contact address.
+Edit `index.html` to update project details, portfolio copy, or links.
 
 ## Publish with GitHub Pages
 
