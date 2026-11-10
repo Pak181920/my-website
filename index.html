@@ -42,12 +42,12 @@
     .project-chip { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 13px; padding: 11px 15px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: .76rem var(--mono); text-decoration: none; transition: border-color .2s, color .2s, background .2s; }
     .project-chip:hover, .project-chip.active { border-color: var(--accent); background: var(--accent); color: #182016; }
     .index-count { color: #667064; }
-    .banner { position: relative; min-height: min(660px, 54vw); height: 68vh; max-height: 760px; overflow: hidden; isolation: isolate; border: 1px solid #343b34; border-radius: 8px; background: #171d19; }
-    .banner::after { content: ""; position: absolute; z-index: 0; inset: 0; background: linear-gradient(90deg, rgba(13,18,15,.96) 0%, rgba(13,18,15,.82) 28%, rgba(13,18,15,.18) 66%, rgba(13,18,15,.08) 100%), linear-gradient(0deg, rgba(13,18,15,.68), transparent 40%); pointer-events: none; }
-    .parallax-photo { position: absolute; z-index: -1; inset: -5% 0 -20%; will-change: transform; transform: translate3d(0,var(--parallax-y, 0px),0); }
-    .parallax-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; }
-    .banner-grid { position: absolute; z-index: 1; inset: 0; opacity: .12; pointer-events: none; background-image: linear-gradient(rgba(234,241,220,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(234,241,220,.14) 1px, transparent 1px); background-size: 64px 64px; mask-image: linear-gradient(90deg, black, transparent 80%); }
-    .banner-content { position: relative; z-index: 2; display: flex; height: 100%; max-width: 630px; flex-direction: column; justify-content: center; padding: clamp(32px, 6vw, 86px); }
+    .banner-stage { height: calc(100vh + 280px); }
+    .banner { position: sticky; top: max(12px, calc((100vh - min(52vw, 660px)) / 2)); width: 100%; aspect-ratio: 1.92; overflow: hidden; isolation: isolate; border: 1px solid #777; background: #080808; }
+    .banner-layer { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+    .banner-back { z-index: 0; }
+    .banner-front { z-index: 1; transform: translate3d(0,var(--front-y, 140px),0); will-change: transform; }
+    .banner-content, .banner-grid, .banner-foot { display: none; }
     .eyebrow { display: flex; align-items: center; gap: 11px; margin: 0 0 23px; color: var(--accent); }
     .eyebrow::before { content: ""; width: 25px; height: 1px; background: currentColor; }
     h1 { margin: 0; font-size: clamp(3.4rem, 7.3vw, 7.2rem); font-weight: 600; line-height: .91; letter-spacing: -.085em; }
@@ -85,14 +85,9 @@
       .nav a { font-size: .68rem; }
       .project-section { padding: 23px 0 54px; }
       .project-index { grid-template-columns: 1fr; gap: 12px; }
-      .banner { height: 76vh; min-height: 570px; max-height: 700px; }
-      .banner::after { background: linear-gradient(0deg, rgba(13,18,15,.94) 0%, rgba(13,18,15,.6) 42%, rgba(13,18,15,.04) 100%); }
-      .parallax-photo { inset: -6% -44% 2% -15%; }
-      .parallax-photo img { object-position: 61% 50%; }
-      .banner-content { justify-content: flex-end; padding: 30px 26px 92px; }
-      h1 { font-size: clamp(3.6rem, 16vw, 6rem); }
-      .banner-copy { max-width: 350px; margin-top: 17px; }
-      .banner-foot { right: 16px; bottom: 15px; left: 16px; font-size: .57rem; }
+      .banner-stage { height: calc(100svh + 180px); }
+      .banner { top: 12vh; }
+      .banner-front { --front-y: 90px; }
       .details { padding: 60px 0; }
       .details-grid { grid-template-columns: 1fr; gap: 24px; }
       .specs { grid-template-columns: 1fr; margin-top: 34px; }
@@ -128,16 +123,11 @@
         </nav>
       </div>
 
-      <div class="banner" id="project-banner">
-        <div class="parallax-photo" aria-hidden="true"><img src="hksigs-front.svg" alt=""></div>
-        <div class="banner-grid" aria-hidden="true"></div>
-        <div class="banner-content">
-          <p class="eyebrow">Featured project · Robotics</p>
-          <h1 id="project-title">Built to<br><span>compete.</span></h1>
-          <p class="banner-copy">A team, a robot, and the work that brings them together. Explore the HK SIGS project.</p>
-          <a class="explore" href="#project-details">EXPLORE PROJECT <span aria-hidden="true">↘</span></a>
+      <div class="banner-stage" id="banner-stage">
+        <div class="banner" id="project-banner" role="img" aria-label="Hong Kong Signature Event robotics team and robot">
+          <img class="banner-layer banner-back" src="hksigs-back.svg" alt="" aria-hidden="true">
+          <img class="banner-layer banner-front" id="banner-front" src="hksigs-front.svg" alt="" aria-hidden="true">
         </div>
-        <div class="banner-foot"><span>Profo · HK SIGS</span><span>Scroll to explore ↓</span></div>
       </div>
     </section>
 
@@ -179,18 +169,20 @@
   </footer>
   <script>
     const banner = document.getElementById('project-banner');
-    const photo = banner.querySelector('.parallax-photo');
+    const stage = document.getElementById('banner-stage');
+    const photo = document.getElementById('banner-front');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let framePending = false;
     function updateParallax() {
       framePending = false;
-      if (reducedMotion.matches || window.innerWidth < 760) {
-        photo.style.setProperty('--parallax-y', '0px');
+      if (reducedMotion.matches) {
+        photo.style.setProperty('--front-y', '0px');
         return;
       }
-      const bounds = banner.getBoundingClientRect();
-      const travel = Math.max(-65, Math.min(65, (window.innerHeight - bounds.top) * .12 - 55));
-      photo.style.setProperty('--parallax-y', `${travel}px`);
+      const start = stage.getBoundingClientRect().top + window.scrollY;
+      const progress = Math.max(0, Math.min(1, (window.scrollY - start) / (window.innerWidth < 760 ? 180 : 280)));
+      const travel = (window.innerWidth < 760 ? 90 : 140) * (1 - progress);
+      photo.style.setProperty('--front-y', `${travel}px`);
     }
     function requestParallax() {
       if (!framePending) {
